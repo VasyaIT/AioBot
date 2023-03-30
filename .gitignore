@@ -80,6 +80,7 @@ target/
 # IPython
 profile_default/
 ipython_config.py
+config.py
 
 # pyenv
 .python-version
@@ -109,6 +110,8 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+aio
+.idea
 
 # Spyder project settings
 .spyderproject
