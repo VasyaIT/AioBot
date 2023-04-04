@@ -20,7 +20,6 @@ from config import API_TOKEN
 from markups import *
 from db import create_update_profile, create_user, delete_form, PHOTOS
 
-
 storage = MemoryStorage()
 bot = Bot(API_TOKEN, parse_mode='HTML')
 dp = Dispatcher(bot, storage=storage)
@@ -43,8 +42,8 @@ async def start(message: types.Message):
     username = message.from_user.username
     first_name = message.from_user.first_name
     await message.answer(f'Привет, <b>{message.from_user.first_name}!👋</b>\n\n'
-                         # f'Этого бота создал - @Solevaaaya - топ 2 БО России на минутучку <em>(да-да, 35 ранг)</em>\n\n'
-                         # f'Этот бот умеет работать с базой данных\n'
+                         # f'Этого бота создал - @Solevaaaya - топ 2 БО России на минутучку <em>(да-да, 
+                         # 35 ранг)</em>\n\n # f'Этот бот умеет работать с базой данных\n'
                          f'Чтобы увидеть все команды нажми - /help',
                          reply_markup=markup_start)
 
@@ -59,11 +58,10 @@ async def help_comm(message: types.Message):
 @dp.message_handler(Text(equals=['Заценить фотки 👀', '/rate']))
 async def rate_photo(message: types.Message):
     photos = choice(list(PHOTOS.keys()))
-    await message.answer_photo(photos, reply_markup=markup_photo, caption=PHOTOS[photos])
+    await message.answer_photo(photos, reply_markup=get_markup_photo(photos, PHOTOS), caption=PHOTOS[photos][0])
 
 
 # Тест
-
 @dp.message_handler(commands=['test'])
 async def test_cmd(message: types.Message):
     await message.answer('Тест на IQ🧐', reply_markup=markup_test)
@@ -77,7 +75,8 @@ async def test_done(message: types.Message):
     time.sleep(3)
     await message.answer('<em>Загрузка...</em>')
     time.sleep(3)
-    await message.answer(f'<b>Твой IQ => {random.randint(-10, 10)}</b>\n\nПоздравлю! Отличный результат! Ты этого заслуживаешь!💪')
+    await message.answer(
+        f'<b>Твой IQ => {random.randint(-10, 10)}</b>\n\nПоздравлю! Отличный результат! Ты этого заслуживаешь!💪')
     time.sleep(2)
     await message.answer_sticker('CAACAgIAAxkBAAEIaAdkJ4CLyfWswB9y8O7G4QfQs8LwagACcgEAAiI3jgTwHKSRbRIvOi8E')
     time.sleep(2)
@@ -103,16 +102,24 @@ async def cancel_form(message: types.Message, state: FSMContext):
 @dp.message_handler(Text(equals='Моя анкета 🦸‍♂️'), state=None)
 async def my_form(message: types.Message):
     user_id = message.chat.id
-    conn = sqlite3.connect('db_profile.sqlite3')
+    conn = sqlite3.connect('db.sqlite3')
     cur = conn.cursor()
-    us_id = cur.execute(f"SELECT 1 FROM profile WHERE user_id == '{user_id}'").fetchone()
+    # cur.execute('CREATE TABLE IF NOT EXISTS profile'
+    #             '(form_id INTEGER NOT NULL UNIQUE, '
+    #             'photo TEXT,'
+    #             'description TEXT,'
+    #             'PRIMARY KEY(form_id autoincrement))')
+    # conn.commit()
+    us_id = cur.execute(
+        f"SELECT profile.form_id FROM users INNER JOIN profile ON users.user_id == '{user_id}'").fetchone()
     if not us_id:
         await ClientStatesGroup.photo.set()
         await message.answer('<b>На данный момент, у тебя нет анкеты</b>\n\nДавай же создадим её 🤑')
+        time.sleep(1)
         await add_form(message)
         return
-    elif us_id:
-        form = cur.execute(f"SELECT photo, description FROM profile WHERE user_id == '{user_id}'").fetchone()
+    else:
+        form = cur.execute(f"SELECT photo, description FROM profile WHERE form_id == '{int(*us_id)}'").fetchone()
         await message.answer_photo(photo=form[0], caption=form[1], reply_markup=markup_ud_form)
     conn.commit()
     cur.close()
@@ -120,7 +127,6 @@ async def my_form(message: types.Message):
 
 
 async def add_form(message: types.Message):
-    time.sleep(1)
     await message.answer('<b>Отправь фотографию</b>\n<i>Её будут видеть другие пользователи</i>\n\n<em>'
                          'Нажми "Отменить ↩️" если хочешь выйти</em>',
                          reply_markup=markup_cancel_form)
@@ -144,8 +150,9 @@ async def load_photo(message: types.Message, state: FSMContext):
 async def load_desc(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['desc'] = message.text
-        await message.answer('<b>Твоя анкета сохранена!✅</b>\n\nТеперь её будут видеть другие пользователи и оценивать её!',
-                            reply_markup=markup_start)
+        await message.answer(
+            '<b>Твоя анкета сохранена!✅</b>\n\nТеперь её будут видеть другие пользователи и оценивать её!',
+            reply_markup=markup_start)
         await message.answer_photo(data['photo'], caption=data['desc'])
 
     await create_update_profile(message, data)
@@ -154,7 +161,9 @@ async def load_desc(message: types.Message, state: FSMContext):
 
 
 # Callback_handlers
-@dp.callback_query_handler(lambda call: call.data == 'holdik' or call.data == 'vasyadasher' or call.data == 'mma' or call.data == 'antinub' or call.data == 'cancel_test')
+@dp.callback_query_handler(lambda call: call.data == 'holdik' or call.data == 'vasyadasher' or call.data == 'mma'
+                           or call.data == 'antinub'
+                           or call.data == 'cancel_test')
 async def callback_q1(call: types.CallbackQuery):
     if call.data == 'mma':
         await call.message.edit_text('Красава, бро! Конечно же шкаф, тут без сомнений😎\n\n'
@@ -190,7 +199,8 @@ async def callback_q1(call: types.CallbackQuery):
 #     await call.answer('Отменено')
 
 
-@dp.callback_query_handler(lambda call: call.data == '20' or call.data == '87' or call.data == '148' or call.data == '16')
+@dp.callback_query_handler(
+    lambda call: call.data == '20' or call.data == '87' or call.data == '148' or call.data == '16')
 async def callback_q2(call: types.CallbackQuery):
     if call.data == '16':
         await call.message.edit_text('Уоу Уоу! Это верно!🥳 Ты не такой безмозглый, как я думал')
@@ -202,9 +212,10 @@ async def callback_q2(call: types.CallbackQuery):
         await test_done(call.message)
 
 
-@dp.callback_query_handler(lambda call: call.data == 'dislike' or call.data == 'like' or call.data == 'go' \
-                                        or call.data == 'update_form' or call.data == 'delete_form' \
-                                        or call.data == 'delete_form_done' or call.data == 'back',
+@dp.callback_query_handler(lambda call: call.data == 'dislike' or call.data == 'like' or call.data == 'go'
+                           or call.data == 'update_form' or call.data == 'delete_form'
+                           or call.data == 'delete_form_done' or call.data == 'back'
+                           or call.data == 'url'
                            )
 async def callback_rate(call: types.CallbackQuery):
     if call.data == 'like':
@@ -213,6 +224,8 @@ async def callback_rate(call: types.CallbackQuery):
     if call.data == 'dislike':
         await rate_photo(call.message)
         await call.answer()
+    if call.data == 'url':
+        await call.answer('У этого пользователя нет @Имени 😢')
     if call.data == 'go':
         await call.message.edit_text('<b>Первый вопрос:</b>\n\n<em>Сколько весит калл слона?</em>',
                                      reply_markup=markup_test_question)
@@ -232,7 +245,7 @@ async def callback_rate(call: types.CallbackQuery):
         await call.bot.delete_message(call.message.chat.id, call.message.message_id - 1)
         await call.answer('Анкета удалена')
     if call.data == 'back':
-        await my_form(call.message)
+        await my_form(message=call.message)
         await call.answer()
 
 
@@ -247,13 +260,6 @@ async def callback_rate(call: types.CallbackQuery):
 #     if call.data == 'go':
 #         await call.message.edit_text('<b>Первый вопрос:</b>\n\n<em>Кто лучший БО мира в 2022 году?</em>',
 #                                      reply_markup=markup_test_question)
-
-
-# Текстовые команды
-
-# @dp.message_handler(content_types=['text'])
-# async def text_cmd(message: types.Message):
-#     await bot.send_message(message.chat.id, 'Привет, как дела? Не хочешь пройти тест на IQ или создать себе анкету? => /help')
 
 
 # Inline mod

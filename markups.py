@@ -14,11 +14,16 @@ markup_start.row(but_photo, but_help)
 markup_start.add(but_form)
 
 
-markup_photo = InlineKeyboardMarkup(row_width=2)
-bt1 = InlineKeyboardButton('👍', callback_data='like')
-bt2 = InlineKeyboardButton('👎', callback_data='dislike')
-bt3 = InlineKeyboardButton('💌', url='t.me/Solevaaaya')
-markup_photo.row(bt1, bt3, bt2)
+def get_markup_photo(photos, PHOTOS):
+    markup_photo = InlineKeyboardMarkup(row_width=2)
+    bt1 = InlineKeyboardButton('👍', callback_data='like')
+    bt2 = InlineKeyboardButton('👎', callback_data='dislike')
+    if PHOTOS[photos][1] == 'none':
+        bt3 = InlineKeyboardButton('💌', callback_data='url')
+    else:
+        bt3 = InlineKeyboardButton('💌', url=f't.me/{PHOTOS[photos][1]}')
+    markup_photo.row(bt1, bt3, bt2)
+    return markup_photo
 
 
 markup_test = InlineKeyboardMarkup()
