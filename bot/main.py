@@ -3,6 +3,8 @@ import random
 import sqlite3
 import time
 import hashlib
+
+import aiogram.utils.exceptions
 import aioschedule
 import schedule as schedule
 
@@ -16,9 +18,10 @@ from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher.middlewares import BaseMiddleware
 from aiogram.types import InputMedia, InputMediaPhoto
 
+# from middlewares import ThrottlingMiddleware
 from config import API_TOKEN
 from markups import *
-from db import create_update_profile, create_user, delete_form, PHOTOS
+from db import create_update_profile, create_user, delete_form, get_photos
 
 storage = MemoryStorage()
 bot = Bot(API_TOKEN, parse_mode='HTML')
@@ -57,8 +60,8 @@ async def help_comm(message: types.Message):
 
 @dp.message_handler(Text(equals=['Заценить фотки 👀', '/rate']))
 async def rate_photo(message: types.Message):
-    photos = choice(list(PHOTOS.keys()))
-    await message.answer_photo(photos, reply_markup=get_markup_photo(photos, PHOTOS), caption=PHOTOS[photos][0])
+    await get_photos(message, choice, aiogram)
+
 
 
 # Тест
@@ -101,25 +104,18 @@ async def cancel_form(message: types.Message, state: FSMContext):
 
 @dp.message_handler(Text(equals='Моя анкета 🦸‍♂️'), state=None)
 async def my_form(message: types.Message):
-    user_id = message.chat.id
+    user_id = message.from_user.id
     conn = sqlite3.connect('db.sqlite3')
     cur = conn.cursor()
-    # cur.execute('CREATE TABLE IF NOT EXISTS profile'
-    #             '(form_id INTEGER NOT NULL UNIQUE, '
-    #             'photo TEXT,'
-    #             'description TEXT,'
-    #             'PRIMARY KEY(form_id autoincrement))')
-    # conn.commit()
-    us_id = cur.execute(
-        f"SELECT profile.form_id FROM users INNER JOIN profile ON users.user_id == '{user_id}'").fetchone()
-    if not us_id:
+
+    form = cur.execute(f"SELECT photo, description FROM users WHERE user_id == '{user_id}'").fetchone()
+    if form[0] == 'none':
         await ClientStatesGroup.photo.set()
         await message.answer('<b>На данный момент, у тебя нет анкеты</b>\n\nДавай же создадим её 🤑')
         time.sleep(1)
         await add_form(message)
         return
     else:
-        form = cur.execute(f"SELECT photo, description FROM profile WHERE form_id == '{int(*us_id)}'").fetchone()
         await message.answer_photo(photo=form[0], caption=form[1], reply_markup=markup_ud_form)
     conn.commit()
     cur.close()
@@ -158,6 +154,19 @@ async def load_desc(message: types.Message, state: FSMContext):
     await create_update_profile(message, data)
 
     await state.finish()
+
+
+@dp.message_handler(Text(equals='qwerty'))
+async def text(message: types.Message):
+    conn = sqlite3.connect('db.sqlite3')
+    cur = conn.cursor()
+    users = cur.execute('SELECT user_id FROM users').fetchall()
+    us = str(*users)
+    for i in list(*us):
+        await bot.send_message(i, 'Реклама!')
+    conn.commit()
+    cur.close()
+    conn.close()
 
 
 # Callback_handlers
@@ -245,7 +254,22 @@ async def callback_rate(call: types.CallbackQuery):
         await call.bot.delete_message(call.message.chat.id, call.message.message_id - 1)
         await call.answer('Анкета удалена')
     if call.data == 'back':
-        await my_form(message=call.message)
+        conn = sqlite3.connect('db.sqlite3')
+        cur = conn.cursor()
+
+        id_user = call.from_user.id
+        form = cur.execute(f"SELECT photo, description FROM users WHERE user_id == '{id_user}'").fetchone()
+        if form[0] == 'none':
+            await ClientStatesGroup.photo.set()
+            await call.message.answer('<b>На данный момент, у тебя нет анкеты</b>\n\nДавай же создадим её 🤑')
+            time.sleep(1)
+            await add_form(call.message)
+            return
+        else:
+            await call.message.edit_caption(caption=form[1], reply_markup=markup_ud_form)
+        conn.commit()
+        cur.close()
+        conn.close()
         await call.answer()
 
 
@@ -278,4 +302,5 @@ async def inline_answer(inline: types.InlineQuery) -> None:
 
 
 if __name__ == "__main__":
+    # dp.middleware.setup(ThrottlingMiddleware())
     executor.start_polling(dp, on_startup=on_startup, skip_updates=True)
