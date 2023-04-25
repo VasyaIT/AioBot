@@ -32,25 +32,14 @@ markup_test.row(b_test)
 
 
 markup_test_question = InlineKeyboardMarkup(row_width=2)
-bq1 = InlineKeyboardButton('3', callback_data='holdik')
-bq2 = InlineKeyboardButton('123', callback_data='vasyadasher')
-bq3 = InlineKeyboardButton('Шкаф', callback_data='mma')
-bq4 = InlineKeyboardButton('40°C', callback_data='antinub')
+bq1 = InlineKeyboardButton('1', callback_data='first')
+bq2 = InlineKeyboardButton('2', callback_data='second')
+bq3 = InlineKeyboardButton('Шкаф', callback_data='third')
+bq4 = InlineKeyboardButton('4', callback_data='four')
 b_test_cancel = InlineKeyboardButton('Отмена', callback_data='cancel_test')
 markup_test_question.row(bq1, bq2)
 markup_test_question.row(bq3, bq4)
 markup_test_question.row(b_test_cancel)
-
-
-# markup_test_question = InlineKeyboardMarkup(row_width=2)
-# bq1 = InlineKeyboardButton('Holdik', callback_data='holdik')
-# bq2 = InlineKeyboardButton('VasyaDasher', callback_data='vasyadasher')
-# bq3 = InlineKeyboardButton('MMA', callback_data='mma')
-# bq4 = InlineKeyboardButton('Antinub', callback_data='antinub')
-# b_test_cancel = InlineKeyboardButton('Отмена', callback_data='cancel_test')
-# markup_test_question.row(bq1, bq2)
-# markup_test_question.row(bq3, bq4)
-# markup_test_question.row(b_test_cancel)
 
 
 markup_test_question2 = InlineKeyboardMarkup(row_width=2)

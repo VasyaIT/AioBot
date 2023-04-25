@@ -38,15 +38,12 @@ HELP_TEXT = """
 """
 
 
-# 305605867	Anton
 @dp.message_handler(commands=['start'])
 async def start(message: types.Message):
     id_chat = message.from_user.id
     username = message.from_user.username
     first_name = message.from_user.first_name
     await message.answer(f'Привет, <b>{message.from_user.first_name}!👋</b>\n\n'
-                         # f'Этого бота создал - @Solevaaaya - топ 2 БО России на минутучку <em>(да-да, 
-                         # 35 ранг)</em>\n\n # f'Этот бот умеет работать с базой данных\n'
                          f'Чтобы увидеть все команды нажми - /help',
                          reply_markup=markup_start)
 
@@ -61,7 +58,6 @@ async def help_comm(message: types.Message):
 @dp.message_handler(Text(equals=['Заценить фотки 👀', '/rate']))
 async def rate_photo(message: types.Message):
     await get_photos(message, choice, aiogram)
-
 
 
 # Тест
@@ -170,16 +166,16 @@ async def text(message: types.Message):
 
 
 # Callback_handlers
-@dp.callback_query_handler(lambda call: call.data == 'holdik' or call.data == 'vasyadasher' or call.data == 'mma'
-                           or call.data == 'antinub'
+@dp.callback_query_handler(lambda call: call.data == 'first' or call.data == 'second' or call.data == 'third'
+                           or call.data == 'four'
                            or call.data == 'cancel_test')
 async def callback_q1(call: types.CallbackQuery):
-    if call.data == 'mma':
+    if call.data == 'third':
         await call.message.edit_text('Красава, бро! Конечно же шкаф, тут без сомнений😎\n\n'
                                      '<b>Второй вопрос:</b><em>Сколько мне лет?</em>',
                                      reply_markup=markup_test_question2)
         await call.answer()
-    if call.data == 'holdik' or call.data == 'vasyadasher' or call.data == 'antinub':
+    if call.data == 'first' or call.data == 'second' or call.data == 'third':
         await call.message.edit_text('НЕВЕРНО!😡 Как можно не знать это!???\n\n'
                                      '<b>Второй вопрос:</b><em>Сколько мне лет?</em>',
                                      reply_markup=markup_test_question2)
@@ -188,24 +184,6 @@ async def callback_q1(call: types.CallbackQuery):
         await call.message.delete()
         await bot.delete_message(call.message.chat.id, call.message.message_id - 1)
     await call.answer('Отменено')
-
-
-# @dp.callback_query_handler(lambda call: call.data == 'holdik' or call.data == 'vasyadasher' or call.data == 'mma' or call.data == 'antinub' or call.data == 'cancel_test')
-# async def callback_q1(call: types.CallbackQuery):
-#     if call.data == 'vasyadasher':
-#         await call.message.edit_text('Красава, бро! Конечно же VasyaDasher, тут без сомнений😎\n\n'
-#                                      '<b>Второй вопрос:</b><em>Сколько мне лет?</em>',
-#                                      reply_markup=markup_test_question2)
-#         await call.answer()
-#     if call.data == 'holdik' or call.data == 'mma' or call.data == 'antinub':
-#         await call.message.edit_text('НЕВЕРНО!😡 Как можно не знать это!???\n\n'
-#                                      '<b>Второй вопрос:</b><em>Сколько мне лет?</em>',
-#                                      reply_markup=markup_test_question2)
-#         await call.answer()
-#     if call.data == 'cancel_test':
-#         await call.message.delete()
-#         await bot.delete_message(call.message.chat.id, call.message.message_id - 1)
-#     await call.answer('Отменено')
 
 
 @dp.callback_query_handler(
@@ -236,7 +214,7 @@ async def callback_rate(call: types.CallbackQuery):
     if call.data == 'url':
         await call.answer('У этого пользователя нет @Имени 😢')
     if call.data == 'go':
-        await call.message.edit_text('<b>Первый вопрос:</b>\n\n<em>Сколько весит калл слона?</em>',
+        await call.message.edit_text('<b>Первый вопрос:</b>\n\n<em>2+2?</em>',
                                      reply_markup=markup_test_question)
     if call.data == 'update_form':
         await ClientStatesGroup.photo.set()
@@ -271,19 +249,6 @@ async def callback_rate(call: types.CallbackQuery):
         cur.close()
         conn.close()
         await call.answer()
-
-
-# @dp.callback_query_handler(lambda call: call.data == 'dislike' or call.data == 'like' or call.data == 'go')
-# async def callback_rate(call: types.CallbackQuery):
-#     if call.data == 'like':
-#         await rate_photo(call.message)
-#         await call.answer()
-#     if call.data == 'dislike':
-#         await rate_photo(call.message)
-#         await call.answer()
-#     if call.data == 'go':
-#         await call.message.edit_text('<b>Первый вопрос:</b>\n\n<em>Кто лучший БО мира в 2022 году?</em>',
-#                                      reply_markup=markup_test_question)
 
 
 # Inline mod
